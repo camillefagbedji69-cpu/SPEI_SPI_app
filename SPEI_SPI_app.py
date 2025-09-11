@@ -12,9 +12,8 @@ st.title("Dashboard des indices SPI et SPEI à partir des données climatiques")
 
 ## importation des données 
 file = st.file_uploader("📂 Chargez un fichier CSV", type="csv")
-sep = st.radio("Choissisez un séparateur :", [",", ";", "\t"], index=1)
-
 if file:
+    sep = st.radio("Choissisez un séparateur :", [",", ";", "\t"], index=1)
     df = pd.read_csv(file, sep=sep)
     st.write("Aperçu des données :", df.head())
 
@@ -37,6 +36,12 @@ if file:
         df[p] = df[p].mask(df[p] < 0)  # mettre NaN pour les valeurs aberrantes
         median_val = df.loc[df[p] > 0, p].median()  # médiane des valeurs positives
         df[p] = df[p].fillna(median_val)
+
+    ##conversion en float 
+    df[tmin_col] = pd.to_numeric(df[tmin_col], errors="coerce")
+    df[tmax_col] = pd.to_numeric(df[tmax_col], errors="coerce")
+    df[rad_col] = pd.to_numeric(df[rad_col], errors="coerce")
+    df[rain_col] = pd.to_numeric(df[rain_col], errors="coerce")
 
     ## calcul de l'évapotranspiration avec la méthode de Hargreaves 
     df["Tmean"] = (df[tmin_col] + df[tmax_col]) / 2
@@ -99,3 +104,4 @@ if file:
     )
 
     st.plotly_chart(fig, use_container_width=True)
+
