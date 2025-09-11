@@ -1,71 +1,77 @@
 ## importation des packages 
 import pandas as pd
-import numpy as np 
-import seaborn as sns 
-import matplotlib.pyplot as plt
+import numpy as np
+import streamlit as st
 import plotly.graph_objects as go
 from scipy.stats import fisk, gamma, norm
-import streamlit as st 
 
 ## titre 
-st.title("Dashboard des indices SPI et SPEI à partir des données climatiques")
+st.title("📊 Dashboard des indices SPI et SPEI à partir des données climatiques")
 
-## importation des données 
+## upload du fichier
 file = st.file_uploader("📂 Chargez un fichier CSV", type="csv")
+sep = st.radio("Choisissez un séparateur :", [",", ";", "\t"], index=1)
+
 if file:
-    sep = st.radio("Choissisez un séparateur :", [",", ";", "\t"], index=1)
     df = pd.read_csv(file, sep=sep)
     st.write("Aperçu des données :", df.head())
 
-    ##sélection des colonnes 
+    # Sélection des colonnes
     colonnes = df.columns.tolist()
-    rain_col = st.selectbox("Pluviométrie:", colonnes)
+    rain_col = st.selectbox("Pluviométrie :", colonnes)
     tmin_col = st.selectbox("Température minimale :", colonnes)
     tmax_col = st.selectbox("Température maximale :", colonnes)
-    rad_col = st.selectbox("Radiation : ", colonnes)
+    rad_col = st.selectbox("Radiation :", colonnes)
 
-    ## définition de la date 
+    # Conversion forcée en numérique
+    df[rain_col] = pd.to_numeric(df[rain_col], errors="coerce")
+    df[tmin_col] = pd.to_numeric(df[tmin_col], errors="coerce")
+    df[tmax_col] = pd.to_numeric(df[tmax_col], errors="coerce")
+    df[rad_col] = pd.to_numeric(df[rad_col], errors="coerce")
+
+    # Définition de la date
     if "YEAR" in df.columns and "DOY" in df.columns:
         df["Date"] = pd.to_datetime(df["YEAR"].astype(str) + df["DOY"].astype(str), format="%Y%j")
     else:
         df["Date"] = pd.to_datetime(df.index)  # fallback
 
-    ## imputation des valeurs aberrantes par la médiane (colonne par colonne)
-    cols = df.select_dtypes(include="number").columns.tolist()
-    for p in cols:
-        df[p] = df[p].mask(df[p] < 0)  # mettre NaN pour les valeurs aberrantes
-        median_val = df.loc[df[p] > 0, p].median()  # médiane des valeurs positives
-        df[p] = df[p].fillna(median_val)
+    # Imputation des valeurs aberrantes par médiane
+    cols_num = df.select_dtypes(include="number").columns.tolist()
+    for col in cols_num:
+        df[col] = df[col].mask(df[col] < 0)
+        median_val = df.loc[df[col] > 0, col].median()
+        df[col] = df[col].fillna(median_val)
 
-    ##conversion en float 
-    df[tmin_col] = pd.to_numeric(df[tmin_col], errors="coerce")
-    df[tmax_col] = pd.to_numeric(df[tmax_col], errors="coerce")
-    df[rad_col] = pd.to_numeric(df[rad_col], errors="coerce")
-    df[rain_col] = pd.to_numeric(df[rain_col], errors="coerce")
-
-    ## calcul de l'évapotranspiration avec la méthode de Hargreaves 
+    # Calcul ET0 (Hargreaves)
     df["Tmean"] = (df[tmin_col] + df[tmax_col]) / 2
-    df["ET0"] = 0.0023 * (df[tmax_col] - df[tmin_col])**0.5 * (
-        df["Tmean"] + 17.8) * df[rad_col]
+    df["ET0"] = 0.0023 * np.sqrt(df[tmax_col] - df[tmin_col]) * (df["Tmean"] + 17.8) * df[rad_col]
     df["Deficit"] = df[rain_col] - df["ET0"]
 
-    ## calcul du SPEI 
+    # Calcul du SPEI
     df["SPEI30"] = df["Deficit"].rolling(window=30).sum()
     spei = df["SPEI30"].dropna()
-    params = fisk.fit(spei)  # ajustement log-logistique
-    F_x = fisk.cdf(spei, *params)
-    SPEI30 = norm.ppf(F_x)
-    df.loc[spei.index, "SPEI30"] = SPEI30
+    if len(spei) > 10:  # vérifier assez de données
+        params = fisk.fit(spei)
+        F_x = fisk.cdf(spei, *params)
+        SPEI30 = norm.ppf(F_x)
+        df.loc[spei.index, "SPEI30"] = SPEI30
+    else:
+        st.warning("⚠️ Pas assez de données valides pour calculer le SPEI30.")
+        df["SPEI30"] = np.nan
 
-    ## calcul du SPI
+    # Calcul du SPI
     df["SPI30"] = df[rain_col].rolling(window=30).sum()
     spi = df["SPI30"].dropna()
-    parms = gamma.fit(spi)  # ajustement gamma
-    F_x = gamma.cdf(spi, *parms)
-    SPI30 = norm.ppf(F_x)
-    df.loc[spi.index, "SPI30"] = SPI30
+    if len(spi) > 10:
+        parms = gamma.fit(spi)
+        F_x = gamma.cdf(spi, *parms)
+        SPI30 = norm.ppf(F_x)
+        df.loc[spi.index, "SPI30"] = SPI30
+    else:
+        st.warning("⚠️ Pas assez de données valides pour calculer le SPI30.")
+        df["SPI30"] = np.nan
 
-    ## graphique interactif
+    # Graphique interactif
     fig = go.Figure()
 
     # Courbe SPEI
@@ -104,4 +110,3 @@ if file:
     )
 
     st.plotly_chart(fig, use_container_width=True)
-
