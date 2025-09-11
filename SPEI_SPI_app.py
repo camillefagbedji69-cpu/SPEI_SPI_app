@@ -19,7 +19,7 @@ if file :
     st.write("Aperçu des données :", df.head())
     ##sélection des colonnes 
     colonnes = df.columns.tolist()
-    rain_col = st.selectbox("Pluviométrie":, colonnes)
+    rain_col = st.selectbox("Pluviométrie:", colonnes)
     tmin_col = st.selectbox("Température minimale :", colonnes)
     tmax_col = st.selectbox("Température maximale :", colonnes)
     rad_col = st.selectbox("Radiation : ", colonnes)
@@ -96,3 +96,4 @@ if file :
         legend=dict(orientation="h", y=-0.2)
     )
     st.plotly_chart(fig, use_container_width=True)
+
