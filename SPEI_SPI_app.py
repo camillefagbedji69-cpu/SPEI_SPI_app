@@ -10,9 +10,9 @@ st.title("📊 Dashboard des indices SPI et SPEI à partir des données climatiq
 
 ## upload du fichier
 file = st.file_uploader("📂 Chargez un fichier CSV", type="csv")
-sep = st.radio("Choisissez un séparateur :", [",", ";", "\t"], index=1)
 
 if file:
+    sep = st.radio("Choisissez un séparateur :", [",", ";", "\t"], index=1)
     df = pd.read_csv(file, sep=sep)
     st.write("Aperçu des données :", df.head())
 
@@ -110,3 +110,4 @@ if file:
     )
 
     st.plotly_chart(fig, use_container_width=True)
+
