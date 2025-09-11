@@ -34,8 +34,9 @@ if file :
     ## imputation des valeurs aberrantes par la médiane (limité ici)
     cols = df.select_dtypes(include =  'number').columns.tolist()
     for p in cols : 
-        df[p] = df[p].mask(df[p]<0) ##mettre NaN pour les valeurs aberrantes 
-        df = df.fillna(df[df[p]>0].median()) ##imputation par la médiane des valeurs positives
+        df[p] = df[p].mask(df[p]<0) ##mettre NaN pour les valeurs aberrantes
+        median_val = df.loc[df[p] > 0, p].median()  ##la médiane des valeurs positives
+        df[p] = df[p].fillna(median_val) 
 
     ## calcul de l'évapotranspiration avec la méthode de Hargreaves 
     df['Tmean'] = (df[tmin_col] + df[tmax_col]) / 2
@@ -96,4 +97,5 @@ if file :
         legend=dict(orientation="h", y=-0.2)
     )
     st.plotly_chart(fig, use_container_width=True)
+
 
