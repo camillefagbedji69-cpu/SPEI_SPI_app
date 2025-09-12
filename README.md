@@ -4,8 +4,6 @@
 Ce projet est un **dashboard interactif Streamlit** permettant de calculer et visualiser les indices hydriques **SPI (Standardized Precipitation Index)** et **SPEI (Standardized Precipitation-Evapotranspiration Index)** à partir de données climatiques quotidiennes.
 Il est conçu pour l’analyse de sécheresse et d’humidité sur des séries temporelles locales.
 
----
-
 ## Fonctionnalités
 
 * Upload d’un fichier CSV contenant :
