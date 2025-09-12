@@ -28,10 +28,11 @@ Il est conçu pour l’analyse de sécheresse et d’humidité sur des séries t
 * Suivi hydrique pour la planification agricole.
 * Prévention et gestion des risques liés aux déficits hydriques.
 
+## URL de l'application 
+https://speispiapp-uiycpejdavnvsb7rmqfzd8.streamlit.app/
+
 👨‍💻 Auteur
 
-**Gbènakpon Camille Boris FAGBEDJI**
+**Camille Boris FAGBEDJI**
 Master en Sciences Agronomiques – Université de Parakou (Bénin)
 Spécialisation en **ingénierie des eaux et sols, télédétection et modélisation écohydrologique**.
-
-Veux‑tu que je fasse ça ?
